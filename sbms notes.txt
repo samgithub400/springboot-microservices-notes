@@ -137,8 +137,47 @@ Session 24:
 Session 27: Primary key and composit primary key......
 
 			
-Session 64 : API Gateway			
+Session 64 : API Gateway
+			
+	->API Gateway will act as mediator between client request and backend API
+	->API gateway will provide single entry point to access our backend API
+	->In API gateway we will write 2 types of logics..
+		1.Filters
+		2.Routing
 		
-		 
+		->Filteres are used to execute some logic before request processin and after reqiuest proessing
+		
+		->Routing is used to tell which request should process by which API
+		
+	->In spring Cloud we have 2 options to create API gateway...
+
+		1.Zuul Proxy (ild approach)
+		2.spring cloud gateway (latest approach)
+	NOTE: Zuul proxy is not supported for latest version of spring boot
+	
+	-----WORKING WITH SPIRNG CLOUD API GATEWAY----
+	
+	-->create spring boot application
+		add dependecies..
+		web starter
+		eureka-client
+		cloud-gateway
+		devtools
+		
+		Annotate main class with @EnableDiscoveryClient
+		
+		write routing configuration in yml file..
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		 
 		 
