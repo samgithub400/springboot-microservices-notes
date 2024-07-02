@@ -1,0 +1,144 @@
+SBMS Notes:
+Start Date: 11/01/2024......
+
+session 10:
+Dependency injection IoC(Inversion of control)
+Q).what is IoC :
+	.Inversion of control is responsible for dependency injection.
+	.dependency injection means injecting one class object into another class.
+	.we can perform dependency injecting by three ways..
+		1.Setter injection
+		2.Constructor injection
+		3.Field injecction
+	.dependency injection is manging spring bean life cycle(bean life cycle means it will manage bean from cration to destroy)....
+	
+	.By using IOC we can develope loosely coupled application....
+	
+	There are two types of IOC container:
+		1.BeanFactory
+			.XmlBeanFactory is a implemented class of BeanFactory..
+			.BeanFactory follows lazy loading..
+			.lazy loading means whenever we call getBean() method that time BeanFactory 	 provides bean..
+			.default bean scope in BeanFactory is Singleton..
+		2.ApplicationContext
+			.ClassPathXmlApplicationContext is a implemented calss of ApplicationContext....
+			.ApplicationContext follows eager loading..
+			.Eager loading means whenever we start ioc container that time we will get beans.
+			.default bean scope in ApplicationContext is Singleton..
+			.
+
+Session 11:	
+
+Spring bean scopes:
+		bean  scope represents how many object should create by IOC container so that we will use spring beans...
+
+There are following types of spring bean scopes:
+			1).Singleton: for the every request ioc will create only one bean
+			2).Prototype: for eager request ioc will new  bean 
+			3).Request: 
+			4).Session:
+			4).Session:
+			
+Q.Why spring bean is by default singleton?
+==> to save the memory of jvm..
+
+session 17:		Ruuners in spring boot:   and Interview Questions also........
+		what is Runners?
+		
+		->Runners are used to execute the logic only once when application got started..
+		SpringApplication.run() method will call the runner...
+		 there are 2 types of runner..
+		 1.ApplicatiopnRunner
+		 2.CommandLineRunner    ......  both are Interfaces.....
+		 
+		 
+		 *****we can create  Runner like this......
+		 
+		 @Component
+		 public class MyRunner implements ApplicationRunner {
+			public void run(ApplicationArguments args) throws Exception{
+				System.out.println("Started.....");
+			}
+		 }
+		 
+		 
+		 @Component
+		 public class MyRunner implements CommanadLineRunner {
+			public void run(String... args) throws Exception{
+				System.out.println("Started.....");
+			}
+		 }
+		 
+		 
+		 
+		 .....Runner Use cases....
+		 1).Loading data from db to cache
+		 
+		 
+Session 18: setter injection vs constructor injection vs field injecction
+				constructor injection is most recommended...........
+				
+				******
+				@Service vs @Component vs @Repository
+				
+				
+Session 19: Data Jpa introduciton.....
+
+Session 22: 
+Session 23:  findByXXX methods in spring data jpa...
+
+			when we write findByXXX methods, jpa will construct  query based in the method name....
+		Note: method naming convention is very inportant for findByXXX methods....
+			
+
+E.X 
+	public interface Student extends JpaRepository<Student,Integer> {
+	
+	//here we are writing some jpa queries......we no need to write query jpa will query internally........
+	
+		//jpa will generate the query for the gender like this..
+			// select * from student where gender= somevalue
+		public List<Student> findByGender(String gender);
+		
+		//select * from student where rank >= 100
+		public List<Student> findByRankGreateThanEqual(Long rank);
+	
+		//select * from student where rank <= 100
+		public List<Student> findByRankLessThanEqual(Long rank);
+		
+		//only male student who are having rank >=100
+		//select * from student where gender = "Male" AND rank >= 100
+		public List<Student> findByGenderAndRankGreaterThanEqual(String gender, Long rank);
+		
+		
+	}
+	Note: findbyXXX methods for retrival operations (select operations only)....insert update or delete we can't do that....
+
+-----------------	
+	Custome Queries in Spring Data Jpa...
+	 we will use @Query annotation to perform custome query......
+		 @Query support HQL + SQL queries...
+		 
+		 HQL(Hibernate Query Language)..
+			->in HQL we will Entity class name and Entity class variable to write query
+			->HQL query  will be converted to SQL by Dialect  class for execution
+			->if we change application from one db to another db  then we no need to change any query because Dialect class will take care   query cinversion...
+			->poor perfomance because of conversion
+			->
+
+		 SQL (Structure query Language)...
+			->in SQL  we will use tabke name and column name to write query...
+			->SQL query will directly execute in db
+			->if we change application from one db to another db then all queries  may not execute..
+			->better perfomance because no conversion
+			
+Session 24: 
+
+Session 27: Primary key and composit primary key......
+
+			
+Session 64 : API Gateway			
+		
+		 
+		 
+		 
