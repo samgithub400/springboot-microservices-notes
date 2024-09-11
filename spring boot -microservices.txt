@@ -1,0 +1,1515 @@
+Spring boot and microservices:
+
+h2 database connection:
+------------------------
+server.port=9090
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=password
+spring.h2.console.enabled=true
+
+----------------------------------------------
+
+spring.jpa.defer-datasource-initialization=true
+
+Session 19: properties file vs yaml file....
+
+	@Value("${value.name}")
+	private String name;
+	....to load the value from the properties file and initialize the value.....
+	
+-------------------------------------------------------------------------------------------------------------	
+	
+Session 20: Spring data Jpa Introduction.....
+		spring data jpa is used to develope persistance layer in the application...
+		spring data jpa is providing ready made methods to perform CRUD operation in DB tables...
+		
+		Data Jpa providing  ready made methods with interfaces.....
+		1.CrudRepository (interface)
+		2.JpaRepository (interface)
+		
+	Note: JpaRepository = CrudRepository  + Pagination Methods + Sorting Methods
+		
+	Spring data Jpa terminology.......
+	
+	1.DataSource Object : 
+	
+	Note: Data source properties we can configure in applicagtion.properties or application.yml file.
+	
+	2.Entity class: the class which is mapped with database table ..
+		
+		@Entity
+		@Table
+		@Id
+		@Column
+		
+	Repository interface: for every table we will create repository interface to perform CRUD operation..
+	
+		
+	Repository Methods: 
+		
+		
+		1.save(Entity);
+		2.saveAll(Iterable<Entity> i);
+		
+		Above 2 methods are called as "UPSERT" (insert and update) methods...
+		
+		3.findById(ID id);
+		4.findAllById(Iterable<ID> id);
+		5.findAll();
+		6.count(); // count of the record
+		7.existById(ID id); 		
+		8.deleteBYId(ID id);
+		9.deleteAllById(Iterable<ID> id);
+		10.deleteAll();
+		
+	ORM Properties : to automate some configuratons
+		
+		1.auto_ddl : dynamic schema generation
+		2.show_sql : display generated queries on the console....
+		
+-------------------------------------------------------------------------------------------------------------
+
+Session 21: spring boot with spring Data Jpa applicatipn creation.......
+
+Session 22: 
+
+Session 23: Spring data jpa methods....like findByXXX  or Customize methods @Query annotation 
+			HQL(Hibernate Query Language) OR SQL(Structure Query Language)...
+
+			HQL Queries:----
+				
+				//select * from student where gender="male"  ----this is SQL query and trnasform this query into HQL...
+				
+				from student where gender="male"
+				
+				from student where gender is null;
+				
+				from student where rank >= ? rank;
+				
+				from student where rank <= ? rank;
+				
+				from student where gender = "male" AND rank =? rank;
+				
+				select s.rank, s.gender from student s; 
+				select gender, rank from employee;
+
+Session 24:		JpaRepository it is predefined interface provided by spring data jpa...
+				CrudRepository provided several methods to perform CRUD operation with database...
+				JpaRepository provided few additional methods to perform operations...
+				
+					JpaRepository = CrudRepository + PaginationAndSorting +  QueryByExample
+					
+					
+Session 25: @Transactional AND @Modifying
+					
+					if we want to perform non-select operation using data jpa  then we should use these 2 annotation
+					@Transactional
+					@Modifying
+					
+				Note: The above annotations are not requried for select operations...........
+					
+				Note: we can not perform insert operation using custom HQL query..........
+						for this we can go for native SQL custom query......
+						
+						
+			TimeStamp in the Data Jpa................
+				
+				@CreationTimeStamp // at what time record is created we can use it
+				@UpdateTimeStamp   // at what time record is updated we can use it....
+				
+				
+				in the entity class..... we can write like this....
+				
+				@CreationTimeStamp //it is used to populate record inserted date itno db column.
+				@Column(name= "CREATE_DATE" updatable=false)
+				private LocalDate createdDate;
+				
+				@UpdateTimeStamp //it is used to populate record updated date itno db column.
+				@Column(name= "UPDATE_DATE" insertable=false)
+				private LocalDate updatedDate;
+				
+				
+		----------------Soft Delete And Hard Delete--------------------------------------------------------
+					
+		
+				Hard delete means deleteting the record from db permenetly using delete query.....
+				
+				soft delete means updating the record as In_ACTIVE.....(here we can get the data back when ever we want....) becoz this data will not be delete from DB .....
+
+				Note: we can implement SOFT DELETE using additional column in DB table (ACTIVE_SW)
+				
+					ACTIVE_SW=Y==> Active record
+					ACTIVE_SW=N==> In-Active record...(delete record)
+					
+					
+Session 26: Primary Key And Composite Primary Key......					
+		
+		
+			primary key is a consraint to maintain unique record in the table..
+			
+				primary key=unique + Not null....
+				
+				UniqueContsraintException.............if we try to insert duplicate primary key then we will get 				UniqueContsraintException............
+				
+				To generate value for Primary key we will use GENERATOR concept....
+				Auto generated primary key.....
+				
+				custome autoincreament primary key:...........
+				
+				
+				Custome generator for primary key..............
+				
+		Composite Primary Key......		
+	........if a table conatins more than one primary key  column it is called composite primary key.....
+		we can not use generators to generate value for the primary key.....it won't support......
+		
+
+		@Embeddable
+		punlic class AccountPK implemets Serializable{	
+			private Integer accId;
+			private String accType;
+			private Long accNum;
+			
+			//getters & setters....
+		}
+		
+		@Entity
+		punlic class Account {
+			private String holderName;
+			private String branch;
+			
+			@EmbeddedId
+			private AccountPK accountPK;
+			
+			
+			//getters & setters
+		}
+		
+		
+		@Repository
+		public interface AccountRepository extends JpaReository<Account,AccountPK> {
+		}
+		
+		
+		AccountPK accountPK = new AccountPK();
+		//set all the values for AccountPK.... and pass the object  as a id to findById() method to get the data.....
+		repo.findById(accountPK);
+		
+		
+	....Connection Pooling in Data Jpa.............		
+				
+	Connection pooling is used to maintain connection required for our application ...
+	Connection pooling will improve application performance......
+	connection pool will store  db connection whenever application starts......
+	
+	Note: Spring data Jpa using Hiakri Connection pool by default.............
+	
+	
+Session 29: Stroed Procedure in data Jpa......................................
+		
+			procedure are used to write business logic at database side ....
+			Procedure are used to improve performance of the application......
+			
+			
+			//here is procedure for get all products.........
+			DELIMITER $$
+			DROP PROCEDURE IF EXISTS `spring-boot-with-data-jpa`.`getProducts` $$
+			CREATE PROCEDURE `spring-boot-with-data-jpa`.`getProducts` ()
+			BEGIN
+			  SELECT * FROM product;
+			END $$
+
+			DELIMITER ;
+			
+			
+			
+	/// ---------------calling the data jpa procedure --------		
+		@Repository
+		public interface AccountRepository extends JpaReository<Product,Integer> {
+			
+			@Query(value="call getProducts" nativeQuery=true) //here we are calling the Stored Procedure using @Query annotaion.....
+			
+			OR We can use @Procedure annotation instead of @Query annotation 
+			
+			@procedure(name="procedure-name")
+			
+			and in the service layer we need to manage trasaction 
+			by this way ....
+			annotate service layer method with @Trasanctional annotation..........
+			
+														//here we passing the procedure name and we are calling procedure using 'call' keyword.....
+			public List<Product> getAllProducts();
+		}
+		
+		
+----------------------------------------------		
+		1.what is spring data jpa ?
+		2.hibernate vs spring data jpa ?
+		3.spring data jpa repositories.....
+		4.what is Entity
+		5.Annotations to map java to DB tables...
+		6.How to develop apploication using data jpa
+		7.CrudFepository methods 
+		8.JpaReository methods...
+		9.CrudFepository vs JpaReository
+		10.what is pagination
+		11.Sorting
+		12.QueryByExample
+		13.Working with findByXXX methods.....
+		14.Custome queries using @Query...  (HQL vs SQL)  ...(Dialect class is responsible to convert HQL query into SQL query)
+		15.calling Stored Procedure
+		16.TimeStamping.....
+		17.soft delete vs hard delete....
+		18.primary key 
+		19Generators
+		20.Composite primary key..
+		21.Connection pooling.....
+		
+		
+Session 30:---------Association Mapping.......
+			
+		To establish relationship between two table we will use Foreign key....
+		
+			1.One To One
+			
+			2.One To Many..(Most frequently used......)
+			
+			3.Many To One
+			
+			4.Many To Many
+			
+		When db tablew having relation then we need to represent that relation in our Entity classes....
+
+			The process of representing DB tables relation in Entity classes is called Association mapping...
+			
+			
+	****What is Cascade type......
+			
+			The default Cascade type is NONE....  It represent operations on parent record should reflect on child record or not...
+			
+			EX: when we delete parent record then we want to delete all child records of that parent...
+			
+			Fetch Type : Default Type is LAZY.....it represents weather load child records along with parent or not 
+			
+			EX: When we retrive parent record i want to retrive all child record of that parent....
+			
+			
+			*************** One To Many Mapping **********
+			
+Session 31:------------------One To One And Many TO Many Reltaionship...----------------------			
+		
+		
+Session 32:----------....Spring Web MVC....--------------	
+		
+		By using Web MVC can develope 2 types of application....
+		1.web application (C 2 B (Customer to Business))...
+			EX: Gmail, facebook, naukari...
+			
+		2.Distributed Application (B 2 B (Business To Business))
+			EX: make my trip--->IRCTC
+				Passport--->AADHAR
+		
+		
+		Spring web mvc architecture.........
+		
+		1.Dispatcher servlet: it acts as a front controller..
+		
+		2.HandlerMapper: it will identify which request should be processed by which controller and which method...
+		
+		3.Controller: it will handle request and response to send usin ModelAndView object....
+		
+		4.ModelAndView: model represents data in key-value format. View represents logical file name to dosplay ...
+		
+		5.View Resolver: it is used to identify physical location of view file...
+		
+		6.View: it used to render model data on view file....
+		
+
+Session 33:-----------Creating web mvc appliaction ....------------
+		
+		
+Session 34:--------------------		
+		
+	1.Query Paramneter: 
+	
+	->query parameter is also called as Request parameter
+	->it will represent data in key and value format
+	->it should present only at end of the url..
+	->it will start with '?' symbol...
+	->it will be seperated by '&' symbol...
+	
+	EX: www.youtube.com/watch?v=astf2342
+		
+		//here  
+		'?' represents the query parameter is starting..
+		'v' represent the key
+		'astf2342' represent value of the key...
+		
+		www.myclass.in?cource=sbms&time=10
+		
+		//here '&' represents the seperation....
+		
+	->To read Query parameters in spring Controller  we will use @RequestParam annotation.....	
+	
+	-----------
+		Path Paramneter
+	-------------
+		->Path parameters are also called as URI parameter....
+		->
+		
+	Note:Path Paramneter will represent the data directly (without keys)
+		
+		->
+		EX: www.myclass.in/cource/{sbms}/time/{10}
+		
+		
+Session 35:----------------------	
+		
+		->To read query parameters we will use @RequestParam
+		->To send data to server in URL we will use query parameter
+		->
+		
+	-->how to work with Path parameter...
+		to send data to server in url, it will represent datat directly (no keys)
+		can presnt anywhere in url
+		starts with '/' symbol....
+		we will use @PathVariable annotation for this.....
+		
+		--------------------
+	
+	//1st approach-------------------------	
+	
+		@Controller
+		public class DemoController {
+		
+			public ModelAndView getDetails() {
+				ModelAndView mav=new ModelAndView();				
+				mav.addObjects(kay,value);
+				mav.setViewName("index");				
+				return mav;
+			}
+		}
+	
+	//2nd approach-------------------------
+	
+		@Controller
+		public class DemoController {
+		
+			public String getDetails(Model moedel) {
+				model.addAtribute(key,value);				
+				return "index";
+			}
+		}
+		
+Session 36:-------------------------------		
+		Application developed Using spring web mvc forms....
+		github link:--https://github.com/ashokitschool/Spring_WEB_MVC_FORM_APP
+		
+		
+Session 37:----------Spring web mvc application completing...----thymleaf......presentation technology.....-------		
+			ttps://github.com/ashokitschool/Spring_WEB_MVC_FORM_APP
+		
+		
+Session 38:---------------
+
+
+Session 39:--------------Interceptor In Spring Web Mvc-------------------
+
+			->we can use Interceptor to perform pre-processing and post-processing for every request...
+				
+				
+				pre-processing : before request processing by the controller method...
+				
+				post-processing : after request processed by controller method....
+				
+			-> using interceptor we can trap each and every request.......	
+				
+				
+			***	Use cases for interceptor...				
+				
+				1.calculate each request processing time
+				
+				2.Log request and response details...
+				
+				3.request authentication etc......
+				
+				
+Session 40:-----------Exception Handling In Web MVC.....-------
+			
+		->Exception means unexpected and unwanted situation..
+		->Exception distrubs bormal flow of our applicatpoion execution...
+		->when exceptiion occurs then our program will terminate abnormally...
+		->As a developer we should handle exception to achieve graceful termination of our applicagtion...
+		
+		--->we will use bellow keywords .....
+		
+		1.try
+		2.catch
+		3.throw
+		4.throws
+		
+		5.TO Handle Exception in spring web mvc application then we can create a method and annotate that method with  		   @ExceptionHandler annotation......
+		
+		
+	Requirment...develope one to do application..........................................................
+			Application should contain the functionality......
+				1.user registration...(name, email, password, gender & phone-Number)
+				2.User login..(email&password)
+				3.Create Task...(Task name, Date, Timing)
+				4.view Tasks....
+				
+				Note: Task Creation & Display Task functionality should work based on logged in user.....
+				
+				5.Logout.....(after logging out land to the home page....)
+				
+		
+Session 41:---------------.....Q&N....----------------		
+
+
+Session 42:---------------...Q&N...------------		
+		
+		
+Session 43:------------Restfull services....------------
+	
+	->What is distributed application?
+	-->if one application is communicating with another aplicatiion then thay are called as distributed appliaction....
+	
+		MakeMytrip---------->IRCTC
+		
+		Passport App------->Aadhar App-------
+		
+		Gpay/Phone Pay----------->Banking app.
+	
+	-->distributed appliaction are used for business to business communication (B 2 B)
+	
+	Note: Web applicatoin are used for customer to business communication (c 2 B)
+	
+	Note: To deveolpe distributed aplicatiion with B 2 B scenario we will use RESTFul services..
+	
+	------------------
+	Distributed Technologies.....
+
+	1.CORBA
+	2.RMI
+	3.EJB
+	4.SOAP Based  web services
+	5.RESTFul services....
+	
+	
+Session 44:------------------	
+	
+	->What is Intereoperatbility ?
+	--->Irrespective of language & if application are communication then they are called as Intereoperable application.
+	-->By using restful services we can develope interoerable application...
+	->
+	
+	
+Session 45:-----------------XMl-----------	
+	
+	JAX-B -->Java Architecure for XML binding.........
+	
+		Marshalling---->convert java object to XML data...
+		Un-Marshalling---->Convert XML data back to java object.....
+	
+	Note: upto Jdk 1.8v JAX-B is part of JDK software. From jdk 1.9 version JAX-B removed from Jdk....
+	
+	Note: From jdk 1.9 version or above vesrions you should have JAX-B dependency.....
+	
+	
+	
+	when we are  using XMl-----------
+	
+	annotate our pojo class with @XmlRootElement annotaion.......
+	
+	then.....do marshalling.........like this....
+	
+	Person p=new Person();
+	p.setId(111);
+	p.setName("Name");
+	p.setEmail("name@gmail.com");	
+	
+	Address add=new Address();
+	add.setCity("Pune");
+	add.setCountry("India");
+	
+	p.setAddress(add);
+	
+	//Note : for the reference variable we do not need to do anything in the reference class........
+	
+	JAXBContext context=JAXBContext.newInstance(pojoclass.class);
+	Marshaller marshaller=context.createMarshaller();
+	marshaller.marshal(p,new File("person.xml"));
+	
+	
+	
+	perform Un-Marshalling----
+		JAXBContext context JAXBContext.newInstance(Person.class);
+		Inmarshaller unmarshaller =context.createUnmarshaller();
+		
+		Person p=(Person) unmarshaller.unmarshal(new File("person.xml"))
+		
+		
+	Json--------------------------------
+
+		JavaScript Object Notation...............
+		
+		json will represent data in the key and value pair..
+		json is light weight
+		json is platform and language independent............
+		
+		Note: when compared with xml json will take less memroy......
+		
+		=> to work with json data we need bellow 3rd party api.....by using that we can convert json to java and java to json object.....
+		
+		1.Jackson: it is default in the spring boot ...........
+		
+		2.Gson: we need to add dependency in pom file....(it is given by google...)
+		
+		
+		
+Session 46:-------------....Json to java and java to json....---------------		
+		
+		
+	1.java to json....
+		
+	Person p=new Person();
+	
+	p.setName("name");
+	p.setCity("Pune");
+	
+	
+	Address ad=new Address();
+	
+	ad.setCity("Pune");
+	ad.setCountry("India");
+	
+	p.setAddress(ad);
+	
+	ObjectMapper mapper=new ObjectMapper();
+	mapper.writeValue(new File("Passenger.json),p);
+	
+	
+	2.json to java..........
+	
+	mapper.readValue(new File("Passenger.json"),Passenger.class);
+	
+	
+Session 47:	.....Http Protocol................
+	
+	->Http stands for hyper text trnsfer protocol.
+	
+	->http acts as mediator between client & server
+	
+	->http is a state less  protocol (it will treat every request as a new request)
+	
+	->Http methods------
+		
+		Get=> get the data from server 
+	
+		Post=> post tha data to the server
+	
+		Put=> update the data from the server
+		
+		Patch=>
+		
+		Delete=> delete the data from the server
+
+		Note:
+			our REST API methods should be binded to HTTP protocol method
+			
+			
+		
+	->http status codes----
+	
+		1XX--> infomration status code 
+		
+		2XX--> SUCCESS status code 
+		
+		3XX--> redirectional
+		
+		4XX--> client error
+		
+		5XX--> server error
+	
+	->http request----
+	
+		http request packate contains------>request line , request header and request body is available in each request......
+		
+			request header---contains------> content type --->application/json like this...
+											accept--> application/json
+											Authentication--> uname:pass
+											Token-->bdhukfcbds
+											
+			request body contains --> payload (palyload nothing but data)
+	
+	->http response-----
+		
+		http response packate contains------>response line, response header and response body is available in each request......
+	
+
+Session 48:----------------REST API Deveolpment------------	
+
+		it is simple to develop rest api uding spring boot..
+		spring boot provided web-starter to develop both web and distributed appliaction
+		web-starter will provide tomcat as default embedded server
+		
+		
+	-->if we want to send custome http status code the we can use ResponseEntity<> as a return type of binded method...
+	
+		
+Session 49:------MediaType in the REST api---------------		
+		
+	consumes: in whic format rest api  method can take input....
+	
+						
+				@PostMapping(value="/register",produces = {"application/json","application/xml"})
+				public User registerUser(@RequestBody User user) {
+
+					return service.registerUser(user);
+				}
+				
+				
+
+	produces: in wich format rest api  method can provide output
+	
+	content-Type header: in whcih format  client sending data to rest api
+	
+	Accept header:  in which format client expecting response from rest api...
+	
+	
+Session 50:--------Develope rest api application-------------
+
+
+Session 51:--------------------Swagger API Documentation-----------------
+		
+		what is Swagger----
+		
+		==>in distributed  application two actors will be available
+		
+			1).provider
+			2).consumer
+			
+			
+		=>provider will be developed by one company
+
+		=>consumer will be developed by another company....
+		
+		=>if consumer wants to access provider ,cosumer side dev team should know provider information
+		
+			->what is provider api url.
+			->what operation (methods) provider having?
+			->operations are binded to which request type (GET or POST or PUT or DElETE)
+			
+		=>swagger is a third party library which is used to generate REST API documentation................
+		
+		
+	=> configuring Swagger in REST API.....
+		
+		-> add swagger2 and swagger ui dependency in pom file
+		
+			
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger-ui</artifactId>
+				<version>2.6.1</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger2</artifactId>
+				<version>2.6.1</version>
+			</dependency>
+
+
+		->create swagger config class to to generate documentation.......
+		
+			@Configuration
+			@EnableSwagger2
+			public class SwaggerConfig {
+			
+				public Docket apiDoc() {
+					new return Docket(DocumentationType.SWAGGER_2)
+					.select()
+					.apis(RequestHandlerSelectors.basePackage("com.ios.controller"))
+					.paths(PathSelectors.any())
+					.build();
+				}
+			}
+		
+
+		-> Json Doc URL : http://localhost:8080/v2/api-docs			
+			
+			UI Doc URL : http://localhost:8080/swagger-ui.html#/
+			
+		Note:  Using swagger-ui we can test REST API functionality..	
+		
+		
+		
+	---------REST Client Development...........---
+
+		->The application which is accessing other application is called as REST client
+		->in the spring boot we can develop REST client in 3 ways
+		
+			1.RestTemplate class (Synchronous)
+			2.WebClient interface (Synchronous and Asynchronous)(introduced in spring 5.x version)
+			3.FeignClient interface (spring cloude)
+			
+			
+Session 53:-----------develop REST call using RestTemplate---------------			
+		
+			@Bean
+			public RestTemplate template() {
+				return new RestTemplate();
+			}
+			
+			@Autowired
+			RestTemplate rt;
+			
+			//this is for postrequest.........
+			ResponseEntity<Ticket> re=rt.postForEntity(uril,requestData,Ticket.class);
+			
+			int statusCode=re.getStatusCodeValue();
+			
+			if(statusCode==200)
+			{
+				return re.getBody();
+			}
+			
+			else
+			{
+				return null;
+			}
+		
+		
+Session 54:----------Web Client implementation----Synchronous calls...-------------------		
+		
+	-> WebClient is a predefined interface introduced in spring 5.x version
+	-> using WebClient interface we can develop REST client  loginc...
+	-> WebClient support both sync and Async communication....
+		
+		RestTemplate (class) : spring boot-web-starter
+		WebClient (interface) : spring-boot-startr-webflux
+		
+		
+		
+		WebClient webclient = WebClient .create();
+		
+		Ticket ticket = webclient.get() //representing the get or post or put or delete methods...
+						.uri(url,id) //representing url....
+						.accept(MediaType.Application_JSON) //representing in which format need to accept the data
+						.retrive() //take a response body
+						.bodyToMono(Ticket.class)//bind response body to java object
+						.block(); //representing synchronous call.......................
+		
+		
+	--->for post method..........
+
+		Ticket ticket = webclient.post()
+						.uri(url)
+						.body(BodyInserters.fromValue(passenge_robject)
+						.heaader("content-type","application/json")
+						.accept(MediaType.Application_JSON)
+						.retrive()
+						.bodyToMono(Ticket.class)
+						.block();
+						
+Session 55:----------Web Client implementation----Asynchronous calls...-------------------
+
+						
+		WebClient webclient = WebClient .create();
+		
+		
+			webclient.get()
+						.uri(url)						
+						.accept(MediaType.Application_JSON)
+						.retrive()
+						.bodyToMono(String.class)
+						.subscribe(response->handleResponse(response));
+						
+						
+						
+			punlic void handleResponse(String response) {
+			
+				System.out.println(response);
+			}	
+
+Session 56:--------------------Spring Data Rest-------			
+		
+		->it is used to simplify rest api development
+		->we no need to create restcontrollers to perform CRUD operations with DB tables
+		
+		
+		->add rest repository dependency in pom file (data rest)
+
+
+		//if we don't have any bissuniess logic ...........
+		// here we no need to write RestController  
+		
+		@RepositoryRestResource(path="books")		
+		public interface UserRepository extends JpaRepository<Book,Integer> {
+			public List<Book> findByNameContaining(@Param("name") String name);
+		}
+		
+		
+		//suppose we have custome methods in repository then we can send thr request like this....
+		
+		http://localhost:8080/books/search/findByNameContaining?name=spring
+		
+		books : it is a path in the repository annotation....
+		search : it is a predefined parameter...
+		findByNameContaining : it is a method name...		
+		name : it is parameter name.....
+		
+		
+	// how we can restrict the delete and update operation in spring data rest.......
+		
+		@Configuration
+		public class MyData implements RepositoryRestConfigurer {
+		
+			@Override
+			public void configureRepositoryRestConfiguration(RespositoryRestConfiguration config, )
+			
+			HttpMethod[] unsupportedMethods = {HttpMethod.PUT,HttpMethod.DELETE};
+			config.getExposureConfiguration() 
+				.forDomainType(Book.class)
+				.withwithItemExposure((metdata,http)->http.disable(unsupportedMethods))
+				.withoutCollectionExposure((metadat,http)->http.disable(unsupportedMethods));
+		}
+		
+		
+Session 57:---------------Exception Handling---------------		
+		
+		in spring boot we can handle exception 2 ways	
+			
+			1.local exception handling
+			2.global exception handling......
+			
+			
+		--STEPS TO HANDLE EXCEPTION---------------------------------
+		
+			create boot application with web starter
+			
+			create RestController with required methods
+			
+			create user defined user defined Exception class
+			
+			create ExceptionInfo binding class
+			
+			create Rest Controller advice to handlel global exception in our application
+			
+			
+		
+			public class CustomerNotFoundException extends RunTimeException {
+			
+				public CustomerNotFoundException() {
+				}
+				
+				public CustomerNotFoundException(String message) {
+					super(message);
+				}
+				
+			}
+			
+			
+			@Data
+			public class ExceptionInfo {
+			
+				private String code;
+				private String measage;
+				private LocalDateTime time;
+			}
+			
+			
+			//when we handle exception in controller class that is called local exception handling.........
+			
+			@RestControllerAdvice
+			public class AppExceptionHandler {
+				
+				@ExceptionHandler(value=CustomerNotFoundException.class)
+				public ResponseEntity<ExceptionInfo> handleCustomerNotFoundException(CustomerNotFoundException e) {
+					
+					ExceptionInfo info=new ExceptionInfo();
+					info.setCode("EX0111");
+					onfo.setMessage(e.getMessage());
+				
+					return new ResponseEntity<>(info,HttpStatus.BAD_REQUEST);
+				
+				}
+			}
+			
+		
+	REST ARCHITECTURE PRINCIPLES---------------------------
+
+		REST : Respresetation state transfer
+		
+		client server architecture
+		
+		no state / no session management
+		
+		unique addressaility
+		
+		map endpoints to http methods
+		
+		MediaType represetation (consumes , produces & Content-Type , Accept)
+		
+		HATEOS : hypermedia as a engine to represent state....(providing the response with links)
+		
+		
+		
+		
+Session 58:----------HATEOS------------		
+		
+		it is one of the rest architecture principle
+		it is used to send response along with hyperlinks for related data
+		
+		spring boot provides : HATEOS starter.......
+		
+		
+Session 59:-----------Spring boot Actuators-------------
+
+		Actuators is used to providing production ready features for the application .....
+		
+		By using actuators we can monitor and manage our application
+		
+		what is the the meaning of monitor application?
+		
+		->what is health of the application 
+		->how many beans loaded by our application
+		->what config props of our application
+		->what is heap info of our application
+		->how many threads running in our application
+		->how many URL mappingf available in our application
+		
+		==>Actuators provides all above the information related to our application............
+		
+		
+		-> to use actuators we need to add actuator dependency in pom file.......
+		
+		
+		http://localhost:8080/actuator
+		
+		we wll get default enabl4ed endpoints...........
+		
+		
+		if we want to expose al the actuator endpoint then we cn wrtie the proprty in application.properties filr....
+		
+			=>management.endpoints.web.exposure.include=*
+		
+		
+		we can exclude any endpoints what you want....
+		
+			=>management.endpoints.web.exposure.exclude=beans,mappings
+		
+		(so here beans and mapping endpoints will not be expose)
+		
+		->all  these actuator endpoint are pre-defined and they are bibded to Http Get request...................
+		
+		->we have special endpoint in actuator called /shutdown
+		->this endpoint is bibded to Http Post request.......................................
+		->using this endpoint we can stop our application
+		
+		-> we have to enable and shutdown 
+		
+			=>management.endpoints.shutdown.enabled=true
+			
+			
+Session:60---------------Microservices-------------------------			
+
+		-------------Monolith vs microservices--------------------
+		
+		->microservices is an architectural design pattern
+		->microservices suggesting to develop application functionalities with loosely coupling
+		
+		-> here we can say one REST API is one microservice
+		->we will devide our application in seperate REST API.....
+		->
+		
+		==Advantages of microservices=====
+		
+		->Loosely couple
+		->Easy to maintain
+		->Faster development
+		->Quick deployment
+		->faster releases
+		->less downtime
+		->technology independence
+		
+		=========Dis-Advantages of microservices--------------------
+		
+		->Bounded Context(deciding  no.of services to be created)
+		->Lot of configuratons
+		->Visibility
+		->Pack of cards
+		
+		
+	->API Gateway : Distribute the load
+	->Service Registry : Eureka server (register all services in Eureka server)
+	->Admin Server : All api actuator endpoints will be a single place
+	->Zipkin Server : Distributed log tracing 
+	->Backend API	: REST API
+	
+		
+		
+		
+Session 61:--------------------...--------
+	
+	1. create application : Service Registry: 
+	
+	Add Depenedency Eureka server .........
+	
+		add server port number : 
+		
+		server:
+			port:8761
+			
+		Configure yml file properties :
+			eureka:
+				client: 
+					register-with-eureka: false
+					
+					
+		Note: if service registry project port is 8761 then clients can doscovver service-registry and will register automatically with service registry . if service -registry project is running on any other port number then we have to register clients with service-registry manually.
+		
+	2. create applicatuion : Admin Server :
+		
+		Add dependency Admin Server
+		
+		add annotation @EnableAdminServer to the main class...
+		
+		port number = 1111 (we can give any port number)
+		
+	3. Zipkin Server :  (default port number 9411)
+			
+			download  zipkin server from google we no need to create our own ....
+			download zipkin jar file....
+			run zipkin jar file on local sytem
+			
+	4. create spring boot application with the dependency : 
+			eureka client
+			web
+			devtools
+			actuators
+			sleuth
+			zipkin
+			admin client
+			
+			Configure @EnableDisciveryClient Annotation at the start class
+			create rest controller with required methods
+			
+			configure properties in yml file
+			
+			
+Session 62 : -----------creating welcome api and greet api  and 
+				
+			implementing microservice inter communication using FeignClient--------------------
+
+		---------------------------------------------------------------
+		
+		add open feign client dependency in pom.xml
+		create interface and annotate  with @FeignClient annotation and add abstract method in interface
+		and which will be same anonther api to access that....
+		
+			@FeignClient(name = "GREET-API")
+			public interface GreetFeighClient {
+
+			  @GetMapping("/greet")
+			  public String greet_API();
+			}
+			
+			
+		annotate main class with @EnableFeignClients
+		
+		To access the another api 
+			@Autowired
+			private GreetFeighClient feighClient;
+			
+			
+Session 63 : ------Load Balancer--------------			
+			
+		Load balancer is used to distribute load to multiple servers to reduce burden
+			
+			NOTE : when we run application in single server then it may not handle huge load
+			
+			->when  amny requests are coming then our server might crash and app will go download
+			->to avoid these problems we will use load balancer for application execution
+			
+			NOTE : instead of our application on single server we will run our application in multiple servers to reduce burder
+			
+			NOTE : When application is running in multiple server then those servers are called instances........
+			
+Session 64 : ------------API Gateway-----------------	
+			
+			API Gateway is used to manage our backend API
+			API Gateway it will act as a mediator between End user and bakcend API
+			
+			APPI Gateway will provide  sinlge entrypoint to access our back end apis
+			
+			In API Gateway we will write mainley 2 types of logics
+				
+				1. Filters
+				2. Routing
+				
+			->Filters are used to execute some logic before request processing and after request processing 
+			->Routing is used to tell which request should go to which REST API
+			
+			->In spring cloud , we have 2 options to create API Gateway
+				
+				1. Zuul Proxy (Old Approach)
+				2. Spring Cloud Gateway (Latest Approach)
+				
+				NOTE : Zuul Proxy is not supported by latest version of spring boot
+				
+				-----------------------------------------
+				WORKING WITH SPRING CLOUD API GATEWAY
+				-------------------------------------------------
+				
+				Add dependencies : 
+				
+				web
+				eureka client
+				cloud gateway
+				devtools
+				
+				@EnableDisciveryClient on start calss
+				
+				
+				application.yml file-----
+				
+				spring:
+					cloud:
+						gateway:
+							discovery.locator:
+								enabled: true
+								lowecaseServiceId: true
+							routes:
+							- id: welcome-api
+							  uri: lb://WELCOME-API
+							  predicates:
+							- Path=/welcome
+							- id: greet-api
+							  uri: lb://GREET-API
+							  predicates:
+							- Path=/greet
+					application:
+						name: CLOUD-API-Gateway
+				
+				server:
+					port: 3333
+					
+-------------------------------------------
+
+			Create Filters---------------------
+			
+			create class for Filter configuration------------------- 
+			
+			@Component
+			public class MyFilter implements GLobalFilter {
+			
+				public Mono<void> filter(ServerWebExchange exchange,GatewayFilterChain chain) {
+					
+					ServerHttpRequest request = exchange.getRFequest();
+					HttpHeaders headers = request.getHeadres();
+					Set<Stirng> keySet = headers.keySet();
+					for(String key : keySet) {
+						List<String> values = headres.get(key);
+						System.out.println(key+" : "+values);
+					}
+					return chain.filter(exchange);
+				}
+				
+				
+			}
+			
+			
+Session 65 : -------------------Sleuth & Zipkin--------------------
+
+		->microservice application means several REST APIs will be available 
+		->as part of application one REST API can communicate with another REST API
+		->when we send request from UI , it will proccess by multiple REST APIs with Interservice communication
+		
+		*****
+		How we can understand which rest api is talking more time to process request
+	
+		->if we add sleuth dependencies in rest api then it will add span-id trace-id for log messages
+		->for every request once span-id will be generated by the sleuth
+		
+		->if one request is processing multiple rest api then sleuth will use same span-id for rest apis to generate log message.
+			
+
+	--------Overview------
+
+	1.What is monolith architecture?
+	2.pros and cons of monolith architecture
+	3.microservice introduction
+	4.pros and cons of microservices--------------------
+	5.microservice architecture
+	6.service registry (eureka server)
+	7.Admin server (monitor and mange actuators)
+	8.zipkin sserver with sleuthbackend apis developement
+	9.Inter-service communication
+	10.Loaad balancing with Ribbon
+	11.API Gateway (Front and gate for all backend apis)
+	12.Filters and Rountings in API Gateway
+	
+	
+Session 66 : ----------Cloud Config Server-------------	
+	
+	->as of now we are configuring properties in application.prooerties and yml file
+	->properties or yml file will be packaged along with our application
+	->if we want to make ay chanhes to properties then we have to re-package our application
+	
+	->To alternate properties from the application we can use cloud config server
+
+		1.create git repo and keep yml file in that repo
+		
+			NOTE: we should keep file name as application
+			
+			app name : greet then file name : greet.yml
+			app name : welcome then file name : welcome.yml
+			
+		2.add cloud congig server dependency 
+		
+		3.write @EnableConfigServer annotation at main class
+		
+		
+		configure yml file like this
+		
+		spring:
+			cloud:
+				config:
+					server:
+						git:
+							uri: github-properties-file-url
+							clone-start-: true
+		management:
+			security:
+				enabled: false
+				
+				
+				
+	-----Create config server client application -------				
+				
+		add dependencies
+		1.web
+		2.config client
+		
+			<dependency>
+			  <groupId>org.springframework.cloud</groupId>
+			  <artifactId>spring-cloud-starter-config</artifactId>
+			</dependency>
+			
+			<!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-config-client -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-config-client</artifactId>
+    <version>3.1.5</version>
+</dependency>
+
+			
+		---create RestController	
+		
+		yml file-----
+		
+		server:
+			port: 7970
+		spring:
+			config:
+				import: optional:configserver:http://localhost:8080
+			application:
+				name: greet
+				
+				
+				
+Session 67 : -----CIRCUIT BREAKER--------------				
+		
+		Q.What is circuite breaker ? 
+		->circuite breaker is a design pattern in microservices.....
+		->Circuite breaker is used to implement fault-tolerence systems
+		->fault-tolerence systems are also called as resillence systems
+		->fault-tolerence systems means when main logic is failed to execute then we should execute fallback logic to process cliant request
+		
+		-----Use cases...------------
+		get data from redis
+		if redis logic is failing then we should get data from database
+		
+		
+		
+	
+					
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+			
+			
+			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+		
+		
+		
+		
+		
+
+
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+		
+		
+		
+ 	
