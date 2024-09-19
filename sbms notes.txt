@@ -30,11 +30,11 @@ Q).what is IoC :
 Session 11:	
 
 Spring bean scopes:
-		bean  scope represents how many object should create by IOC container so that we will use spring beans...
+		bean  scope represents how many object should create by IOC container so that we will use spring bean scopes...
 
 There are following types of spring bean scopes:
 			1).Singleton: for the every request ioc will create only one bean
-			2).Prototype: for eager request ioc will new  bean 
+			2).Prototype: for every request ioc will create new  bean 
 			3).Request: 
 			4).Session:
 			4).Session:
